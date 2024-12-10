@@ -90,7 +90,7 @@ def scan_for_highs(tickers_df=None, uploaded_file=None, threshold_pct=2.0):
             pct_from_high = ((max_price - today_price) / max_price) * 100
             
             # Consider it a "hit" if within threshold_pct of high
-            is_near_high = pct_from_high <= threshold_pct
+            is_near_high = True
             
             # Get company info including short interest data
             info = stock.info
@@ -102,6 +102,7 @@ def scan_for_highs(tickers_df=None, uploaded_file=None, threshold_pct=2.0):
                 "1-Year High": max_price,
                 "Percent From High": pct_from_high,
                 "Near High": is_near_high,
+                "Name": info.get ('shortName', 'Name not available'),
                 "Description": info.get('longBusinessSummary', 'Description not available'),
                 "Industry": info.get('industry', 'N/A'),
                 "Sector": info.get('sector', 'N/A'),
@@ -159,6 +160,7 @@ def display_interactive_table(df):
     
     # Add all columns with proper formatting
     summary_df['% From High'] = df['Percent From High'].apply(lambda x: f"{x:.2f}%")
+    summary_df['Name'] = df['Name'].fillna('N/A')
     summary_df['Industry'] = df['Industry'].fillna('N/A')
     summary_df['Sector'] = df['Sector'].fillna('N/A')
     summary_df['Recent Earnings Surprise'] = df['Earnings Surprise'].apply(lambda x: f"{x:.2f}%" if pd.notnull(x) else "N/A")
@@ -202,6 +204,7 @@ def display_interactive_table(df):
                 help="Click ticker to view company details",
                 width="medium"
             ),
+            "Company": st.column_config.TextColumn("Company", width="medium"),
             "Short Ratio": st.column_config.TextColumn("Short Ratio", width="medium"),
             "Short % of Float": st.column_config.TextColumn("Short % of Float", width="medium"),
             "Current Year Revenue": st.column_config.TextColumn("Current Year Revenue", width="medium"),
@@ -261,23 +264,23 @@ if exchange != "Custom Upload":
     exchange_file = "nyse_tickers.csv" if exchange == "NYSE" else "nasdaq_tickers.csv"
 
 # Add threshold slider
-threshold = st.slider("Select maximum percentage from 52-week high:", 0.0, 5.0, 2.0, 0.1)
+#threshold = st.slider("Select maximum percentage from 52-week high:", 0.0, 5.0, 2.0, 0.1)
 
 # Add scan button
 if st.button("Scan for Stocks"):
     # Run the scan with selected exchange file or uploaded file
     with st.spinner(f'Scanning stocks...'):
         if exchange == "Custom Upload" and uploaded_file is not None:
-            results_df = scan_for_highs(uploaded_file=uploaded_file, threshold_pct=threshold)
+            results_df = scan_for_highs(uploaded_file=uploaded_file, threshold_pct= 0)
         else:
             tickers_df = pd.read_csv(exchange_file) # Keep the original slicing
-            results_df = scan_for_highs(tickers_df=tickers_df, threshold_pct=threshold)
+            results_df = scan_for_highs(tickers_df=tickers_df, threshold_pct= 0)
         
         # Store results in session state
         st.session_state['scan_results'] = results_df
         
         # Display number of stocks found
-        st.success(f"Found {len(results_df)} stocks within {threshold}% of their 52-week highs!")
+        st.success(f"Found {len(results_df)} stocks at their 52-week highs!")
 
 # Display results if available
 if 'scan_results' in st.session_state and not st.session_state['scan_results'].empty:
