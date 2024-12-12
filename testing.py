@@ -96,9 +96,14 @@ def scan_for_highs(tickers_df=None, uploaded_file=None, threshold_pct=2.0):
             info = stock.info
             if 'longBusinessSummary' not in info:
                 continue
-                
-            eps_current, eps_next = get_earnings_estimates(ticker)
-            rev_current, rev_next = get_revenue_estimates(ticker)
+            
+            # Get earnings and revenue estimates first
+            eps_estimates = get_earnings_estimates(ticker)
+            eps_current, eps_next = eps_estimates.iloc[0], eps_estimates.iloc[1]
+            
+            rev_estimates = get_revenue_estimates(ticker)
+            rev_current, rev_next = rev_estimates.iloc[0], rev_estimates.iloc[1]
+            
             surprise_pct = get_earnings_surprise(ticker)
 
             one_year_highs[ticker] = {
@@ -106,7 +111,7 @@ def scan_for_highs(tickers_df=None, uploaded_file=None, threshold_pct=2.0):
                 "1-Year High": max_price,
                 "Percent From High": pct_from_high,
                 "Near High": is_near_high,
-                "Name": info.get ('shortName', 'Name not available'),
+                "Name": info.get('shortName', 'Name not available'),
                 "Description": info.get('longBusinessSummary', 'Description not available'),
                 "Industry": info.get('industry', 'N/A'),
                 "Sector": info.get('sector', 'N/A'),
@@ -118,31 +123,9 @@ def scan_for_highs(tickers_df=None, uploaded_file=None, threshold_pct=2.0):
                 "Next Year Revenue": rev_next,
                 "Earnings Surprise": surprise_pct
             }
-            
-            # If it's near high, get additional info
-            # if is_near_high:
-            #     try:
-            #         eps_current, eps_next = get_earnings_estimates(ticker)
-            #         rev_current, rev_next = get_revenue_estimates(ticker)
-            #         surprise_pct = get_earnings_surprise(ticker)
-                    
-            #         one_year_highs[ticker].update({
-            #             "Current Year EPS": eps_current,
-            #             "Next Year EPS": eps_next,
-            #             "Current Year Revenue": rev_current,
-            #             "Next Year Revenue": rev_next,
-            #             "Earnings Surprise": surprise_pct
-            #         })
-            #     except:
-            #         one_year_highs[ticker].update({
-            #             "Current Year EPS": None,
-            #             "Next Year EPS": None,
-            #             "Current Year Revenue": None,
-            #             "Next Year Revenue": None,
-            #             "Earnings Surprise": None
-            #         })
                     
         except Exception as e:
+            print(f"Error processing {ticker}: {str(e)}")
             continue
     
     progress_bar.empty()
