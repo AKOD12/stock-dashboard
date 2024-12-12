@@ -97,6 +97,10 @@ def scan_for_highs(tickers_df=None, uploaded_file=None, threshold_pct=2.0):
             if 'longBusinessSummary' not in info:
                 continue
                 
+            eps_current, eps_next = get_earnings_estimates(ticker)
+            rev_current, rev_next = get_revenue_estimates(ticker)
+            surprise_pct = get_earnings_surprise(ticker)
+
             one_year_highs[ticker] = {
                 "Today Price": today_price,
                 "1-Year High": max_price,
@@ -107,31 +111,36 @@ def scan_for_highs(tickers_df=None, uploaded_file=None, threshold_pct=2.0):
                 "Industry": info.get('industry', 'N/A'),
                 "Sector": info.get('sector', 'N/A'),
                 "Short Ratio": info.get('shortRatio', None),
-                "Short Percent of Float": info.get('shortPercentOfFloat', None)
+                "Short Percent of Float": info.get('shortPercentOfFloat', None),
+                "Current Year EPS": eps_current,
+                "Next Year EPS": eps_next,
+                "Current Year Revenue": rev_current,
+                "Next Year Revenue": rev_next,
+                "Earnings Surprise": surprise_pct
             }
             
             # If it's near high, get additional info
-            if is_near_high:
-                try:
-                    eps_current, eps_next = get_earnings_estimates(ticker)
-                    rev_current, rev_next = get_revenue_estimates(ticker)
-                    surprise_pct = get_earnings_surprise(ticker)
+            # if is_near_high:
+            #     try:
+            #         eps_current, eps_next = get_earnings_estimates(ticker)
+            #         rev_current, rev_next = get_revenue_estimates(ticker)
+            #         surprise_pct = get_earnings_surprise(ticker)
                     
-                    one_year_highs[ticker].update({
-                        "Current Year EPS": eps_current,
-                        "Next Year EPS": eps_next,
-                        "Current Year Revenue": rev_current,
-                        "Next Year Revenue": rev_next,
-                        "Earnings Surprise": surprise_pct
-                    })
-                except:
-                    one_year_highs[ticker].update({
-                        "Current Year EPS": None,
-                        "Next Year EPS": None,
-                        "Current Year Revenue": None,
-                        "Next Year Revenue": None,
-                        "Earnings Surprise": None
-                    })
+            #         one_year_highs[ticker].update({
+            #             "Current Year EPS": eps_current,
+            #             "Next Year EPS": eps_next,
+            #             "Current Year Revenue": rev_current,
+            #             "Next Year Revenue": rev_next,
+            #             "Earnings Surprise": surprise_pct
+            #         })
+            #     except:
+            #         one_year_highs[ticker].update({
+            #             "Current Year EPS": None,
+            #             "Next Year EPS": None,
+            #             "Current Year Revenue": None,
+            #             "Next Year Revenue": None,
+            #             "Earnings Surprise": None
+            #         })
                     
         except Exception as e:
             continue
