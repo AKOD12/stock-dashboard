@@ -23,15 +23,8 @@ def get_earnings_estimates(ticker):
     try:
         stock = yf.Ticker(ticker)
         earnings = stock.earnings_estimate
-        
-        # First try to get estimates using column names
-        if '+1Y' in earnings.columns and '0Y' in earnings.columns:
-            current_year = earnings.loc[earnings.index == 'Average Estimate', '0Y'].iloc[0]
-            next_year = earnings.loc[earnings.index == 'Average Estimate', '+1Y'].iloc[0]
-        else:
-            # Fallback to positional indexing if column names don't match
-            current_year = earnings.iloc[0, 2]  # Current year average estimate
-            next_year = earnings.iloc[0, 3]     # Next year average estimate
+        current_year = earnings.iloc[2]['avg']
+        next_year = earnings.iloc[3]['avg']
             
         return pd.Series([current_year, next_year])
     except Exception as e:
@@ -42,15 +35,8 @@ def get_revenue_estimates(ticker):
     try:
         stock = yf.Ticker(ticker)
         revenue = stock.revenue_estimate
-        
-        # First try to get estimates using column names
-        if '+1Y' in revenue.columns and '0Y' in revenue.columns:
-            current_year = revenue.loc[revenue.index == 'Average Estimate', '0Y'].iloc[0]
-            next_year = revenue.loc[revenue.index == 'Average Estimate', '+1Y'].iloc[0]
-        else:
-            # Fallback to positional indexing if column names don't match
-            current_year = revenue.iloc[0, 2]  # Current year average estimate
-            next_year = revenue.iloc[0, 3]     # Next year average estimate
+        current_year = revenue.iloc[2]['avg']
+        next_year = revenue.iloc[3]['avg']
             
         return pd.Series([current_year, next_year])
     except Exception as e:
